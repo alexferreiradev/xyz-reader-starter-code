@@ -77,7 +77,7 @@ public class ArticleDetailFragment extends Fragment implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setRetainInstance(false);
+		setHasOptionsMenu(true);
 
 		if (getArguments() != null && getArguments().containsKey(ARG_ITEM_ID) && getArguments().containsKey(ARG_CURSOR_POS)) {
 			long mItemId = getArguments().getLong(ARG_ITEM_ID);

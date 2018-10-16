@@ -68,7 +68,6 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 	@Override
 	public void swapCursor(Cursor cursor) {
 		mPagerAdapter.swapCursor(cursor);
-		articleVP.setAdapter(null);
 	}
 
 	@Override
@@ -118,6 +117,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 		super.onStart();
 		//noinspection deprecation
 		getSupportLoaderManager().initLoader(ALL_ARTICLES_LOADER_ID, null, presenter);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		articleVP.setAdapter(null);
+		articleVP.removeAllViews();
 	}
 
 	@Override
@@ -225,7 +231,6 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 
 		@SuppressWarnings("WeakerAccess")
 		public void swapCursor(Cursor cursor) {
-			this.cursor.close();
 			this.cursor = cursor;
 		}
 	}
