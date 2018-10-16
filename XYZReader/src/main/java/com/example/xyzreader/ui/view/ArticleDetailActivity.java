@@ -35,8 +35,9 @@ import com.example.xyzreader.ui.view.helper.ImageLoaderHelper;
  */
 public class ArticleDetailActivity extends AppCompatActivity implements ArticleDetailContract.View {
 
+	public static final String SELECTED_POS_KEY = "selected position";
 	private static final String TAG = ArticleDetailActivity.class.getSimpleName();
-	public static final int ALL_ARTICLES_LOADER_ID = 1;
+	public static final int ALL_ARTICLES_LOADER_ID = ArticleListActivity.ALL_ARTICLES_LOADER_ID;
 
 	private MyPagerAdapter mPagerAdapter;
 	private ArticleDetailContract.Presenter presenter;
@@ -83,7 +84,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 		if (savedInstanceState == null) {
 			if (getIntent() != null && getIntent().getData() != null) {
 				long mStartId = ItemsContract.Items.getItemId(getIntent().getData());
-				presenter.setStartId(mStartId);
+				int selectedPos = getIntent().getIntExtra(ArticleDetailActivity.SELECTED_POS_KEY, -1);
+				if (selectedPos < 0) {
+					Log.i(TAG, "Activity iniciada por outro app");
+				} else {
+					presenter.setSelectedPos(selectedPos);
+					presenter.setStartId(mStartId);
+				}
 			} else {
 				throw new IllegalStateException("Não foi passado itemId");
 			}

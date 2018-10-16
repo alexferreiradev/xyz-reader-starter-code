@@ -67,5 +67,7 @@ public interface ArticleDetailContract {
 		void shareArticle(android.view.View view);
 
 		boolean onPageChange(int position);
+
+		void setSelectedPos(int selectedPos);
 	}
 }

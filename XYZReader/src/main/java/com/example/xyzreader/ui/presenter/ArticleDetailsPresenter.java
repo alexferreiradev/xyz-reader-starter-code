@@ -15,8 +15,9 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 	private ArticleDetailContract.View view;
 	private long curretItemId;
 	private Cursor allArticlesCursor;
-	private boolean findSelectedPosition = true;
+	private boolean findSelectedPosition = false;
 	private int currentPosition = 0;
+	private int selectedPos;
 
 	public ArticleDetailsPresenter(Context context, ArticleDetailContract.View view) {
 		this.context = context;
@@ -45,14 +46,22 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 	}
 
 	@Override
+	public void setSelectedPos(int selectedPos) {
+		findSelectedPosition = selectedPos < 0;
+		this.selectedPos = selectedPos;
+	}
+
+	@Override
 	public boolean onPageChange(int position) {
 		if (allArticlesCursor != null) {
-			boolean moved = allArticlesCursor.moveToPosition(position);
-			curretItemId = allArticlesCursor.getLong(ArticleLoader.Query._ID);
-			currentPosition = position;
-			view.bindView(allArticlesCursor);
+			if (selectedPos != position) { // Somente depois de ter iniciado a primeira vez
+				boolean moved = allArticlesCursor.moveToPosition(position);
+				curretItemId = allArticlesCursor.getLong(ArticleLoader.Query._ID);
+				currentPosition = position;
+				view.bindView(allArticlesCursor);
 
-			return moved;
+				return moved;
+			}
 		}
 
 		return false;
@@ -81,19 +90,25 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 		switch (loader.getId()) {
 			case ArticleDetailActivity.ALL_ARTICLES_LOADER_ID:
 				this.allArticlesCursor = cursor;
-				cursor.moveToFirst();
 				int foundPosition = -1;
-				if (findSelectedPosition) { // Primeira vez
+				if (findSelectedPosition) { // Activity iniciada por outro APP, nao temos a posicao do loader
+					cursor.moveToFirst();
 					foundPosition = findCurrentItemPosition(cursor);
 					if (foundPosition == 0) {
 						view.bindView(cursor);
 					}
 					findSelectedPosition = false;
+				} else {
+					cursor.moveToPosition(selectedPos);
+					view.bindView(cursor);
 				}
 				view.createPagerAdapter(this.allArticlesCursor);
 				if (foundPosition > 0) {
 					view.setPagerPos(foundPosition);
+				} else {
+					view.setPagerPos(selectedPos);
 				}
+
 				break;
 		}
 	}

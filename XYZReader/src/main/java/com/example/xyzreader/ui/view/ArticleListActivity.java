@@ -34,6 +34,8 @@ public class ArticleListActivity extends AppCompatActivity implements ArticleLis
 	@SuppressWarnings("unused")
 	private static final String TAG = ArticleListActivity.class.toString();
 
+	public static final int ALL_ARTICLES_LOADER_ID = 1;
+
 	@BindView(R.id.swipe_refresh_layout)
 	SwipeRefreshLayout swipeRefreshLayout;
 	@BindView(R.id.rv_article)
@@ -69,7 +71,7 @@ public class ArticleListActivity extends AppCompatActivity implements ArticleLis
 		presenter = new ArticleListPresenter(this, this);
 
 		//noinspection deprecation
-		getSupportLoaderManager().initLoader(0, null, presenter);
+		getSupportLoaderManager().initLoader(ALL_ARTICLES_LOADER_ID, null, presenter);
 		swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
@@ -124,8 +126,9 @@ public class ArticleListActivity extends AppCompatActivity implements ArticleLis
 	}
 
 	@Override
-	public void showArticleDetailsView(Article article) {
+	public void showArticleDetailsView(Article article, int position) {
 		Intent intent = new Intent(Intent.ACTION_VIEW, ItemsContract.Items.buildItemUri(article.getId()));
+		intent.putExtra(ArticleDetailActivity.SELECTED_POS_KEY, position);
 
 		startActivity(intent);
 	}
