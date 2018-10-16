@@ -38,12 +38,10 @@ import java.util.Locale;
 public class ArticleDetailFragment extends Fragment implements
 		ArticleDetailContract.FragmentView {
 	public static final String ARG_ITEM_ID = "item_id";
+	public static final String ARG_CURSOR_POS = "cursor_pos";
 	private static final String TAG = "ArticleDetailFragment";
-	private static final float PARALLAX_FACTOR = 1.25f;
 
 	View rootView;
-	//	@BindView(R.id.sv_body)
-//	NestedScrollView bodySV;
 	@BindView(R.id.pb_details_fragment)
 	ProgressBar progressBar;
 	@BindView(R.id.tv_article_date)
@@ -58,7 +56,6 @@ public class ArticleDetailFragment extends Fragment implements
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
 	private SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
 	private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);// Most time functions can only handle 1902 - 2037
-	private boolean isCard = false;
 
 	/**
 	 * Mandatory empty constructor for the fragment manager to instantiate the
@@ -67,9 +64,10 @@ public class ArticleDetailFragment extends Fragment implements
 	public ArticleDetailFragment() {
 	}
 
-	public static ArticleDetailFragment newInstance(long itemId) {
+	public static ArticleDetailFragment newInstance(long itemId, int position) {
 		Bundle arguments = new Bundle();
 		arguments.putLong(ARG_ITEM_ID, itemId);
+		arguments.putInt(ARG_CURSOR_POS, position);
 		ArticleDetailFragment fragment = new ArticleDetailFragment();
 		fragment.setArguments(arguments);
 
@@ -81,13 +79,13 @@ public class ArticleDetailFragment extends Fragment implements
 		super.onCreate(savedInstanceState);
 		setRetainInstance(false);
 
-		isCard = getResources().getBoolean(R.bool.detail_is_card);
-		if (getArguments() != null && getArguments().containsKey(ARG_ITEM_ID)) {
+		if (getArguments() != null && getArguments().containsKey(ARG_ITEM_ID) && getArguments().containsKey(ARG_CURSOR_POS)) {
 			long mItemId = getArguments().getLong(ARG_ITEM_ID);
+			int cursorPosition = getArguments().getInt(ARG_CURSOR_POS);
 			Log.d(TAG, "Criando fragment: " + mItemId);
-			presenter = new ArticleDetailsFragmentPresenter(requireContext(), this, mItemId);
+			presenter = new ArticleDetailsFragmentPresenter(requireContext(), this, mItemId, cursorPosition);
 		} else {
-			throw new IllegalStateException("Não foi passado itemId");
+			throw new IllegalStateException("Não foi passado itemId ou posicao de cursor");
 		}
 	}
 
@@ -104,7 +102,7 @@ public class ArticleDetailFragment extends Fragment implements
 
 		Log.d(TAG, "Iniciando loader no frag com id: " + presenter.getArticleId());
 		// noinspection deprecation
-		requireActivity().getSupportLoaderManager().initLoader(ArticleDetailActivity.ARTICLE_BY_ID_FRAG_LOADER_ID + Integer.parseInt(String.valueOf(presenter.getArticleId())), null, presenter);
+		requireActivity().getSupportLoaderManager().initLoader(ArticleDetailActivity.ALL_ARTICLES_LOADER_ID, null, presenter);
 	}
 
 	@Override
@@ -151,13 +149,10 @@ public class ArticleDetailFragment extends Fragment implements
 	@Override
 	public void bindView(Cursor cursor) {
 		dateTV.setMovementMethod(new LinkMovementMethod());
-		bodyTV.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+		bodyTV.setTypeface(Typeface.SANS_SERIF);
 
 		if (cursor != null) {
 			Log.d(TAG, "Iniciando bind de id: " + presenter.getArticleId());
-//			rootView.setAlpha(0);
-//			rootView.animate().alpha(1);
-			setProgressBarVisibility(false);
 			Date publishedDate = parsePublishedDate(cursor);
 			if (!publishedDate.before(START_OF_EPOCH.getTime())) {
 				dateTV.setText(DateUtils.getRelativeTimeSpanString(

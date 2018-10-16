@@ -36,9 +36,7 @@ import com.example.xyzreader.ui.view.helper.ImageLoaderHelper;
 public class ArticleDetailActivity extends AppCompatActivity implements ArticleDetailContract.View {
 
 	private static final String TAG = ArticleDetailActivity.class.getSimpleName();
-	public static final int ARTICLE_BY_ID_LOADER_ID = 0;
-	public static final int ARTICLE_BY_ID_FRAG_LOADER_ID = 1;
-	public static final int ALL_ARTICLES_LOADER_ID = 2;
+	public static final int ALL_ARTICLES_LOADER_ID = 1;
 
 	private MyPagerAdapter mPagerAdapter;
 	private ArticleDetailContract.Presenter presenter;
@@ -100,11 +98,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 			public void onPageSelected(int position) {
 				if (presenter.onPageChange(position)) {
 					super.onPageSelected(position);
+
 				} else {
 					Log.w(TAG, "Erro ao selecionar uma pagina que não está no cursor ou não há cursor válido");
 				}
 			}
 		});
+		setProgressBarVisibity(true);
 	}
 
 	private void setFullScreenLoliPop() {
@@ -124,7 +124,7 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 	public void startShareView(View view, Cursor cursor) {
 		startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(this)
 				.setType("text/plain")
-				.setText(cursor.getString(cursor.getColumnIndex(ItemsContract.Items.BODY)))
+				.setText(cursor.getString(cursor.getColumnIndex(ItemsContract.Items.TITLE)))
 				.getIntent(), getString(R.string.action_share)));
 	}
 
@@ -215,7 +215,7 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 			cursor.moveToPosition(position);
 			Log.d(TAG, "Criando fragment no adapter: " + position);
 
-			return ArticleDetailFragment.newInstance(cursor.getLong(cursor.getColumnIndex(ItemsContract.Items._ID)));
+			return ArticleDetailFragment.newInstance(cursor.getLong(cursor.getColumnIndex(ItemsContract.Items._ID)), position);
 		}
 
 		@Override

@@ -5,22 +5,18 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import com.example.xyzreader.data.loader.ArticleLoader;
 import com.example.xyzreader.ui.view.ArticleDetailActivity;
 
 public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter {
-	private static final boolean PROGRESS_BAR_VISIBLE = true;
-	private static final boolean PROGRESS_BAR_INVISIBLE = false;
 	private Context context;
 	private ArticleDetailContract.View view;
-	private Cursor cursor;
 	private long curretItemId;
 	private Cursor allArticlesCursor;
 	private boolean findSelectedPosition = true;
+	private int currentPosition = 0;
 
 	public ArticleDetailsPresenter(Context context, ArticleDetailContract.View view) {
 		this.context = context;
@@ -39,7 +35,13 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public void shareArticle(View view) {
-		this.view.startShareView(view, cursor);
+		if (allArticlesCursor == null) {
+			this.view.showErrorMsg("Não pode ser compartilhado um artigo ainda não carregado");
+			this.view.showErrorMsg("Espere carregar o artigo para tentar compartilhar");
+		} else {
+			allArticlesCursor.moveToPosition(currentPosition);
+			this.view.startShareView(view, allArticlesCursor);
+		}
 	}
 
 	@Override
@@ -47,14 +49,8 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 		if (allArticlesCursor != null) {
 			boolean moved = allArticlesCursor.moveToPosition(position);
 			curretItemId = allArticlesCursor.getLong(ArticleLoader.Query._ID);
-			//noinspection deprecation
-
-			LoaderManager supportLoaderManager = ((AppCompatActivity) context).getSupportLoaderManager();
-			if (supportLoaderManager.getLoader(ArticleDetailActivity.ARTICLE_BY_ID_LOADER_ID) == null) {
-				supportLoaderManager.initLoader(ArticleDetailActivity.ARTICLE_BY_ID_LOADER_ID, null, this);
-			} else {
-				supportLoaderManager.restartLoader(ArticleDetailActivity.ARTICLE_BY_ID_LOADER_ID, null, this);
-			}
+			currentPosition = position;
+			view.bindView(allArticlesCursor);
 
 			return moved;
 		}
@@ -64,7 +60,8 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public long getArticleIdByCursor() {
-		return cursor.getLong(ArticleLoader.Query._ID);
+		allArticlesCursor.moveToPosition(currentPosition);
+		return allArticlesCursor.getLong(ArticleLoader.Query._ID);
 	}
 
 	@Override
@@ -75,38 +72,27 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 	@NonNull
 	@Override
 	public Loader<Cursor> onCreateLoader(int i, @Nullable Bundle bundle) {
-		switch (i) {
-			case ArticleDetailActivity.ARTICLE_BY_ID_LOADER_ID:
-				ArticleLoader articleLoader = ArticleLoader.newInstanceForItemId(context, curretItemId, this);
-				articleLoader.commitContentChanged();
-				return articleLoader;
-		}
-
 		return ArticleLoader.newAllArticlesInstance(context, this);
 	}
 
 	@Override
 	public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
+		view.setProgressBarVisibity(false);
 		switch (loader.getId()) {
-			case ArticleDetailActivity.ARTICLE_BY_ID_LOADER_ID:
-				this.cursor = cursor;
-				this.cursor.moveToFirst();
-				view.bindView(cursor);
-				break;
 			case ArticleDetailActivity.ALL_ARTICLES_LOADER_ID:
 				this.allArticlesCursor = cursor;
 				cursor.moveToFirst();
-				int positionFound = -1;
+				int foundPosition = -1;
 				if (findSelectedPosition) { // Primeira vez
-					positionFound = findCurrentItemPosition(cursor);
-					if (positionFound == 0) {
+					foundPosition = findCurrentItemPosition(cursor);
+					if (foundPosition == 0) {
 						view.bindView(cursor);
 					}
 					findSelectedPosition = false;
 				}
-				view.createPagerAdapter(cursor);
-				if (positionFound > 0) {
-					view.setPagerPos(positionFound);
+				view.createPagerAdapter(this.allArticlesCursor);
+				if (foundPosition > 0) {
+					view.setPagerPos(foundPosition);
 				}
 				break;
 		}
@@ -125,12 +111,9 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-		if (loader.getId() == ArticleDetailActivity.ALL_ARTICLES_LOADER_ID) {
-			view.notifyViewPagerThatDataChanged();
-		} else {
-			view.swapCursor(null);
-			cursor = null;
-		}
+		view.swapCursor(null);
+		view.notifyViewPagerThatDataChanged();
+		allArticlesCursor = null;
 	}
 
 	@Override

@@ -15,17 +15,19 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 	private ArticleDetailContract.FragmentView view;
 	private Cursor mCursor;
 	private long itemId;
+	private int cursorPosition;
 
-	public ArticleDetailsFragmentPresenter(Context context, ArticleDetailContract.FragmentView view, long itemId) {
+	public ArticleDetailsFragmentPresenter(Context context, ArticleDetailContract.FragmentView view, long itemId, int cursorPosition) {
 		this.context = context;
 		this.view = view;
 		this.itemId = itemId;
+		this.cursorPosition = cursorPosition;
 	}
 
 	@NonNull
 	@Override
 	public Loader<Cursor> onCreateLoader(int i, @Nullable Bundle bundle) {
-		return ArticleLoader.newInstanceForItemId(context, itemId, this);
+		return ArticleLoader.newAllArticlesInstance(context, this);
 	}
 
 	@Override
@@ -37,14 +39,14 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 			return;
 		}
 
+		view.setProgressBarVisibility(false);
+		cursor.moveToPosition(cursorPosition);
 		mCursor = cursor;
-		cursor.moveToFirst();
-		view.bindView(mCursor);
+		view.bindView(cursor);
 	}
 
 	@Override
 	public void onLoaderReset(@NonNull Loader<Cursor> loader) {
-		mCursor.close();
 		mCursor = null;
 		view.bindView(null);
 	}
