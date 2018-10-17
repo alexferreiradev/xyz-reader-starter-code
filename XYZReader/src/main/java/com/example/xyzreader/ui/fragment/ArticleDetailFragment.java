@@ -1,18 +1,21 @@
 package com.example.xyzreader.ui.fragment;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.text.Html;
+import android.support.v4.widget.NestedScrollView;
+import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import butterknife.BindView;
@@ -23,6 +26,7 @@ import com.example.xyzreader.ui.presenter.ArticleDetailContract;
 import com.example.xyzreader.ui.presenter.ArticleDetailsFragmentPresenter;
 import com.example.xyzreader.ui.view.ArticleDetailActivity;
 import com.example.xyzreader.ui.view.ArticleListActivity;
+import com.example.xyzreader.ui.view.helper.ArticleHelper;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,8 +43,9 @@ public class ArticleDetailFragment extends Fragment implements
 		ArticleDetailContract.FragmentView {
 	public static final String ARG_ITEM_ID = "item_id";
 	public static final String ARG_CURSOR_POS = "cursor_pos";
+	public static final int TOTAL_TO_ADD_BODY_PART = 500;
+	public static final int DEAD_LINE = 7;
 	private static final String TAG = "ArticleDetailFragment";
-
 	View rootView;
 	@BindView(R.id.pb_details_fragment)
 	ProgressBar progressBar;
@@ -50,7 +55,8 @@ public class ArticleDetailFragment extends Fragment implements
 	TextView authorTV;
 	@BindView(R.id.tv_article_body)
 	TextView bodyTV;
-
+	@BindView(R.id.sv_body)
+	NestedScrollView articleSV;
 	private ArticleDetailContract.PresenterFragment presenter;
 	private ArticleDetailContract.FragmentListener listener;
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss", Locale.getDefault());
@@ -99,8 +105,17 @@ public class ArticleDetailFragment extends Fragment implements
 			Log.e(TAG, "Activity que utilizar fragment deve implementar listener: " + e.getMessage());
 			throw new IllegalStateException("Activity que utilizar fragment deve implementar listener", e);
 		}
+	}
 
-		Log.d(TAG, "Iniciando loader no frag com id: " + presenter.getArticleId());
+	@Override
+	public void onAttach(Context context) {
+		super.onAttach(context);
+	}
+
+	@Override
+	public void onStart() {
+		super.onStart();
+		Log.d(TAG, "Iniciando loader no frag: ");
 		// noinspection deprecation
 		requireActivity().getSupportLoaderManager().initLoader(ArticleDetailActivity.ALL_ARTICLES_LOADER_ID, null, presenter);
 	}
@@ -119,7 +134,7 @@ public class ArticleDetailFragment extends Fragment implements
 	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		rootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
 		ButterKnife.bind(this, rootView);
-		bindView(null);
+		initView();
 		Log.d(TAG, "Criando view para fragment com id: " + presenter.getArticleId());
 
 		return rootView;
@@ -127,6 +142,11 @@ public class ArticleDetailFragment extends Fragment implements
 
 	@Override
 	public void updateStatusBar() {
+	}
+
+	@Override
+	public void addBodyTextPart(Spanned aditionalBody) {
+		bodyTV.append(aditionalBody);
 	}
 
 	private Date parsePublishedDate(Cursor cursor) {
@@ -148,34 +168,62 @@ public class ArticleDetailFragment extends Fragment implements
 
 	@Override
 	public void bindView(Cursor cursor) {
-		dateTV.setMovementMethod(new LinkMovementMethod());
-		bodyTV.setTypeface(Typeface.SANS_SERIF);
-
-		if (cursor != null) {
-			Log.d(TAG, "Iniciando bind de id: " + presenter.getArticleId());
-			Date publishedDate = parsePublishedDate(cursor);
-			if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-				dateTV.setText(DateUtils.getRelativeTimeSpanString(
-						publishedDate.getTime(),
-						System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-						DateUtils.FORMAT_ABBREV_ALL).toString());
-
-			} else { // If date is before 1902, just show the string
-				dateTV.setText(outputFormat.format(publishedDate));
+		Log.d(TAG, "Iniciando bind de id: " + presenter.getArticleId());
+		setPublishedDate(cursor);
+		setAuthorName(cursor);
+		setInitialBodyText();
+		articleSV.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+			@Override
+			public void onScrollChanged() {
+				int scrollY = articleSV.getScrollY();
+				int height = articleSV.getHeight(); // ok, mas impreciso
+				int maxScrollAmount = articleSV.getMaxScrollAmount(); // ok
+				int scroolPos = height - scrollY;
+				int lastVisiblePos = (maxScrollAmount / scroolPos) * 10;
+				if (scrollY > 0) {
+					if (lastVisiblePos > DEAD_LINE) {
+						System.out.println("Novo body");
+						System.out.printf("Ultima pos: %d\ny: %d\nheight: %d\nmaxSc: %d\n", lastVisiblePos, scrollY, height, maxScrollAmount);
+					}
+				}
 			}
-			String authorName = cursor.getString(ArticleLoader.Query.AUTHOR);
-			String authorText = String.format("by %s", authorName);
-			authorTV.setText(authorText);
-			String articleBody = cursor.getString(ArticleLoader.Query.BODY);
-			bodyTV.setText(Html.fromHtml(articleBody.replaceAll("(\r\n|\n)", "<br />")));
-		} else {
-			Log.d(TAG, "Iniciando bind null");
-			setProgressBarVisibility(true);
-			dateTV.setText(getString(R.string.loading_info));
-			authorTV.setText(getString(R.string.loading_info));
-			bodyTV.setText(getString(R.string.loading_info));
-		}
+		});
+
 		Log.d(TAG, "Fim bind de id: " + presenter.getArticleId());
+	}
+
+	private void setInitialBodyText() {
+		final String articleBody = presenter.getCompletedBodyText();
+		Spanned bodyInHtml = ArticleHelper.getBodyPartText(articleBody, TOTAL_TO_ADD_BODY_PART);
+		bodyTV.setText(bodyInHtml);
+	}
+
+	private void setAuthorName(Cursor cursor) {
+		String authorName = cursor.getString(ArticleLoader.Query.AUTHOR);
+		authorTV.setText(String.format("by %s", authorName));
+	}
+
+	private void setPublishedDate(Cursor cursor) {
+		Date publishedDate = parsePublishedDate(cursor);
+		if (!publishedDate.before(START_OF_EPOCH.getTime())) {
+			dateTV.setText(DateUtils.getRelativeTimeSpanString(
+					publishedDate.getTime(),
+					System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+					DateUtils.FORMAT_ABBREV_ALL).toString());
+
+		} else { // If date is before 1902, just show the string
+			dateTV.setText(outputFormat.format(publishedDate));
+		}
+	}
+
+	private void initView() {
+		Log.d(TAG, "Iniciando bind null");
+		setProgressBarVisibility(true);
+		dateTV.setText(getString(R.string.loading_info));
+		authorTV.setText(getString(R.string.loading_info));
+		bodyTV.setText(getString(R.string.loading_info));
+		bodyTV.setMovementMethod(new LinkMovementMethod());
+		bodyTV.setTypeface(Typeface.SANS_SERIF);
 	}
 
 	@Override

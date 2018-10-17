@@ -3,6 +3,7 @@ package com.example.xyzreader.ui.presenter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
+import android.text.Spanned;
 import com.example.xyzreader.data.loader.ArticleLoader;
 import com.example.xyzreader.ui.view.BaseView;
 
@@ -39,6 +40,8 @@ public interface ArticleDetailContract {
 		void onUpButtonFloorChanged(long itemId);
 
 		void updateStatusBar();
+
+		void addBodyTextPart(Spanned aditionalBody);
 	}
 
 	interface FragmentListener {
@@ -52,6 +55,12 @@ public interface ArticleDetailContract {
 		void onScroolChanged(int mScrollY);
 
 		long getArticleId();
+
+		String getCompletedBodyText();
+
+		void startLoadBody();
+
+		void loadedAditionalBody(Spanned aditionalBody);
 	}
 
 	interface Presenter extends LoaderManager.LoaderCallbacks<Cursor>, ArticleLoader.LoaderListeners {
