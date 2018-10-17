@@ -58,7 +58,7 @@ public interface ArticleDetailContract {
 
 		void restoreSavedState(Bundle savedInstanceState);
 
-		void savePositionState(Bundle outState, int verticalScrollbarPosition);
+		void saveState(Bundle outState, int verticalScrollbarPosition);
 
 		void setStartId(long mStartId);
 

@@ -84,7 +84,7 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 		if (savedInstanceState == null) {
 			if (getIntent() != null && getIntent().getData() != null) {
 				long mStartId = ItemsContract.Items.getItemId(getIntent().getData());
-				int selectedPos = getIntent().getIntExtra(ArticleDetailActivity.SELECTED_POS_KEY, -1);
+				int selectedPos = getIntent().getIntExtra(ArticleDetailActivity.SELECTED_POS_KEY, ArticleDetailsPresenter.INVALID_POSITION);
 				if (selectedPos < 0) {
 					Log.i(TAG, "Activity iniciada por outro app");
 				} else {
@@ -94,6 +94,8 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 			} else {
 				throw new IllegalStateException("Não foi passado itemId");
 			}
+		} else {
+			presenter.restoreSavedState(savedInstanceState);
 		}
 
 		ActivityHelper.configureActionBar(this, toobar);
@@ -213,6 +215,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 	@Override
 	public void shareArticle(View v) {
 		presenter.shareArticle(v);
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		presenter.saveState(outState, articleVP.getVerticalScrollbarPosition());
 	}
 
 	private class MyPagerAdapter extends FragmentStatePagerAdapter {

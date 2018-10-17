@@ -11,13 +11,16 @@ import com.example.xyzreader.data.loader.ArticleLoader;
 import com.example.xyzreader.ui.view.ArticleDetailActivity;
 
 public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter {
+	public static final int INVALID_POSITION = -1;
+	private static final String ARTICLE_POS_SAVED_KEY = "articlePosSavedKey";
+
 	private Context context;
 	private ArticleDetailContract.View view;
-	private long curretItemId;
 	private Cursor allArticlesCursor;
-	private boolean findSelectedPosition = false;
-	private int currentPosition = 0;
-	private int selectedPos;
+	private long curretItemId;
+	private boolean activityStartedFromOtherApp = false;
+	private int currentPosition = INVALID_POSITION;
+	private int selectedPos = INVALID_POSITION;
 
 	public ArticleDetailsPresenter(Context context, ArticleDetailContract.View view) {
 		this.context = context;
@@ -26,12 +29,14 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public void restoreSavedState(Bundle savedInstanceState) {
-
+		if (savedInstanceState != null && savedInstanceState.containsKey(ARTICLE_POS_SAVED_KEY)) {
+			currentPosition = savedInstanceState.getInt(ARTICLE_POS_SAVED_KEY);
+		}
 	}
 
 	@Override
-	public void savePositionState(Bundle outState, int verticalScrollbarPosition) {
-
+	public void saveState(Bundle outState, int verticalScrollbarPosition) {
+		outState.putInt(ARTICLE_POS_SAVED_KEY, currentPosition);
 	}
 
 	@Override
@@ -47,20 +52,22 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public void setSelectedPos(int selectedPos) {
-		findSelectedPosition = selectedPos < 0;
+		activityStartedFromOtherApp = selectedPos == INVALID_POSITION;
 		this.selectedPos = selectedPos;
 	}
 
 	@Override
 	public boolean onPageChange(int position) {
 		if (allArticlesCursor != null) {
-			if (selectedPos != position) { // Somente depois de ter iniciado a primeira vez
+			if (position != currentPosition) { // Somente quando faz troca de posicao
 				boolean moved = allArticlesCursor.moveToPosition(position);
 				curretItemId = allArticlesCursor.getLong(ArticleLoader.Query._ID);
 				currentPosition = position;
 				view.bindView(allArticlesCursor);
 
 				return moved;
+			} else {
+				return true;
 			}
 		}
 
@@ -90,23 +97,22 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 		switch (loader.getId()) {
 			case ArticleDetailActivity.ALL_ARTICLES_LOADER_ID:
 				this.allArticlesCursor = cursor;
-				int foundPosition = -1;
-				if (findSelectedPosition) { // Activity iniciada por outro APP, nao temos a posicao do loader
+				if (currentPosition == INVALID_POSITION) { // Iniciando Activity de item selecionado
+					currentPosition = selectedPos;
+				} else if (activityStartedFromOtherApp) {
 					cursor.moveToFirst();
-					foundPosition = findCurrentItemPosition(cursor);
-					if (foundPosition == 0) {
-						view.bindView(cursor);
-					}
-					findSelectedPosition = false;
-				} else {
-					cursor.moveToPosition(selectedPos);
+					currentPosition = findCurrentItemPosition(cursor);
+				}
+
+				if (currentPosition != INVALID_POSITION) {
+					cursor.moveToPosition(currentPosition);
 					view.bindView(cursor);
 				}
+
 				view.createPagerAdapter(this.allArticlesCursor);
-				if (foundPosition > 0) {
-					view.setPagerPos(foundPosition);
-				} else {
-					view.setPagerPos(selectedPos);
+
+				if (currentPosition != INVALID_POSITION) {
+					view.setPagerPos(currentPosition);
 				}
 
 				break;
