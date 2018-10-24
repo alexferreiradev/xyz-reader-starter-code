@@ -5,11 +5,11 @@ import android.text.Spanned;
 
 public final class ArticleHelper {
 
-	public static Spanned getBodyPartText(String articleBody, int offset, int incremment) {
+	public static Spanned getBodyTextPart(String articleBody, int offset, int incremment) {
 		String bodyToStart;
 
 		int textSize = articleBody.length();
-		int processedOffset = offset + 1;
+		int processedOffset = offset;
 		int processedfinalPos = processedOffset + incremment;
 		if (processedfinalPos > textSize) {
 			processedfinalPos = textSize;
@@ -20,6 +20,7 @@ public final class ArticleHelper {
 
 		bodyToStart = articleBody.substring(processedOffset, processedfinalPos);
 
-		return Html.fromHtml(bodyToStart.replaceAll("(\r\n|\n)", "<br />"));
+		String bodyWithoutLineEnd = bodyToStart.replaceAll("(\r\n|\n)", "<br />");
+		return Html.fromHtml(bodyWithoutLineEnd);
 	}
 }

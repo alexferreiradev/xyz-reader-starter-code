@@ -106,6 +106,10 @@ public class ArticleDetailFragment extends Fragment implements
 			Log.e(TAG, "Activity que utilizar fragment deve implementar listener: " + e.getMessage());
 			throw new IllegalStateException("Activity que utilizar fragment deve implementar listener", e);
 		}
+
+		Log.d(TAG, "Iniciando loader no frag: ");
+		// noinspection deprecation
+		requireActivity().getSupportLoaderManager().initLoader(ArticleDetailActivity.ALL_ARTICLES_LOADER_ID + Integer.valueOf(String.valueOf(presenter.getArticleId())), null, presenter);
 	}
 
 	@Override
@@ -116,9 +120,6 @@ public class ArticleDetailFragment extends Fragment implements
 	@Override
 	public void onStart() {
 		super.onStart();
-		Log.d(TAG, "Iniciando loader no frag: ");
-		// noinspection deprecation
-		requireActivity().getSupportLoaderManager().initLoader(ArticleDetailActivity.ALL_ARTICLES_LOADER_ID, null, presenter);
 	}
 
 	@Override
@@ -190,8 +191,10 @@ public class ArticleDetailFragment extends Fragment implements
 
 	private void setInitialBodyText() {
 		final String articleBody = presenter.getCompletedBodyText();
-		Spanned bodyInHtml = ArticleHelper.getBodyPartText(articleBody, 0, INITIAL_BODY_SIZE);
+		Spanned bodyInHtml = ArticleHelper.getBodyTextPart(articleBody, 0, INITIAL_BODY_SIZE);
 		bodyTV.setText(bodyInHtml);
+		bodyTV.setMovementMethod(LinkMovementMethod.getInstance());
+		bodyTV.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 	}
 
 	private void setAuthorName(Cursor cursor) {

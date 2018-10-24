@@ -27,7 +27,7 @@ public class ArticleBodyLoad extends AsyncTask<String, Integer, Spanned> {
 		int intOffset = Integer.parseInt(offset);
 		String completeBodyText = presenter.getCompletedBodyText();
 
-		return ArticleHelper.getBodyPartText(completeBodyText, intOffset, ArticleDetailFragment.TOTAL_TO_ADD_BODY_PART);
+		return ArticleHelper.getBodyTextPart(completeBodyText, intOffset, ArticleDetailFragment.TOTAL_TO_ADD_BODY_PART);
 	}
 
 	@Override

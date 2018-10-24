@@ -96,7 +96,7 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 		if (aditionalBody == null || aditionalBody.length() == 0) { // Não tem mais a ser carregado
 			return;
 		} else {
-			currentOffset += aditionalBody.length();
+			currentOffset += aditionalBody.length() + 1;
 			view.addBodyTextPart(aditionalBody);
 		}
 		isLoadingScrool = false;
