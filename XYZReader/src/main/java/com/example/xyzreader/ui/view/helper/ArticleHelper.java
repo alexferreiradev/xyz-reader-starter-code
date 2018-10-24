@@ -5,13 +5,20 @@ import android.text.Spanned;
 
 public final class ArticleHelper {
 
-	public static Spanned getBodyPartText(String articleBody, int finalPosition) {
+	public static Spanned getBodyPartText(String articleBody, int offset, int incremment) {
 		String bodyToStart;
-		if (articleBody.length() > finalPosition) {
-			bodyToStart = articleBody.substring(0, finalPosition);
-		} else {
-			bodyToStart = articleBody;
+
+		int textSize = articleBody.length();
+		int processedOffset = offset + 1;
+		int processedfinalPos = processedOffset + incremment;
+		if (processedfinalPos > textSize) {
+			processedfinalPos = textSize;
 		}
+		if (processedOffset > textSize) {
+			processedOffset = textSize;
+		}
+
+		bodyToStart = articleBody.substring(processedOffset, processedfinalPos);
 
 		return Html.fromHtml(bodyToStart.replaceAll("(\r\n|\n)", "<br />"));
 	}

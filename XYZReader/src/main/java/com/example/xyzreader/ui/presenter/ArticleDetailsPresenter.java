@@ -58,7 +58,7 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public boolean onPageChange(int position) {
-		if (allArticlesCursor != null) {
+		if (allArticlesCursor != null && !allArticlesCursor.isClosed()) {
 			if (position != currentPosition) { // Somente quando faz troca de posicao
 				boolean moved = allArticlesCursor.moveToPosition(position);
 				curretItemId = allArticlesCursor.getLong(ArticleLoader.Query._ID);
@@ -76,6 +76,7 @@ public class ArticleDetailsPresenter implements ArticleDetailContract.Presenter 
 
 	@Override
 	public long getArticleIdByCursor() {
+
 		allArticlesCursor.moveToPosition(currentPosition);
 		return allArticlesCursor.getLong(ArticleLoader.Query._ID);
 	}

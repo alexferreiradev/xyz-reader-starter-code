@@ -44,6 +44,7 @@ public class ArticleDetailFragment extends Fragment implements
 	public static final String ARG_ITEM_ID = "item_id";
 	public static final String ARG_CURSOR_POS = "cursor_pos";
 	public static final int TOTAL_TO_ADD_BODY_PART = 500;
+	public static final int INITIAL_BODY_SIZE = 1000; // Valor muito grande para precisar de scrool
 	public static final int DEAD_LINE = 7;
 	private static final String TAG = "ArticleDetailFragment";
 	View rootView;
@@ -178,13 +179,8 @@ public class ArticleDetailFragment extends Fragment implements
 				int scrollY = articleSV.getScrollY();
 				int height = articleSV.getHeight(); // ok, mas impreciso
 				int maxScrollAmount = articleSV.getMaxScrollAmount(); // ok
-				int scroolPos = height - scrollY;
-				int lastVisiblePos = (maxScrollAmount / scroolPos) * 10;
 				if (scrollY > 0) {
-					if (lastVisiblePos > DEAD_LINE) {
-						System.out.println("Novo body");
-						System.out.printf("Ultima pos: %d\ny: %d\nheight: %d\nmaxSc: %d\n", lastVisiblePos, scrollY, height, maxScrollAmount);
-					}
+					presenter.onScroolChanged(scrollY, height);
 				}
 			}
 		});
@@ -194,7 +190,7 @@ public class ArticleDetailFragment extends Fragment implements
 
 	private void setInitialBodyText() {
 		final String articleBody = presenter.getCompletedBodyText();
-		Spanned bodyInHtml = ArticleHelper.getBodyPartText(articleBody, TOTAL_TO_ADD_BODY_PART);
+		Spanned bodyInHtml = ArticleHelper.getBodyPartText(articleBody, 0, INITIAL_BODY_SIZE);
 		bodyTV.setText(bodyInHtml);
 	}
 

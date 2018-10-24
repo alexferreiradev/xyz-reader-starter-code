@@ -22,10 +22,12 @@ public class ArticleBodyLoad extends AsyncTask<String, Integer, Spanned> {
 
 	@Override
 	protected Spanned doInBackground(String... strings) {
-		String completeBodyText = presenter.getCompletedBodyText();
-		Spanned bodyPartText = ArticleHelper.getBodyPartText(completeBodyText, ArticleDetailFragment.TOTAL_TO_ADD_BODY_PART);
+		String offset = strings[0];
 
-		return bodyPartText;
+		int intOffset = Integer.parseInt(offset);
+		String completeBodyText = presenter.getCompletedBodyText();
+
+		return ArticleHelper.getBodyPartText(completeBodyText, intOffset, ArticleDetailFragment.TOTAL_TO_ADD_BODY_PART);
 	}
 
 	@Override

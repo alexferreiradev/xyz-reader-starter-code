@@ -52,7 +52,7 @@ public interface ArticleDetailContract {
 
 	interface PresenterFragment extends LoaderManager.LoaderCallbacks<Cursor>, ArticleLoader.LoaderListeners {
 
-		void onScroolChanged(int mScrollY);
+		void onScroolChanged(int mScrollY, int height);
 
 		long getArticleId();
 
