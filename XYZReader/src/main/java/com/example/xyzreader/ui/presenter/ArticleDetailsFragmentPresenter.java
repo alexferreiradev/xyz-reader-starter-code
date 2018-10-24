@@ -8,8 +8,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.Loader;
 import android.text.Spanned;
 import android.util.Log;
+import com.example.xyzreader.R;
 import com.example.xyzreader.data.loader.ArticleLoader;
-import com.example.xyzreader.ui.fragment.ArticleDetailFragment;
 import com.example.xyzreader.ui.task.ArticleBodyLoad;
 
 public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.PresenterFragment {
@@ -21,7 +21,7 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 	private int cursorPosition;
 	private Cursor allArticleCursor;
 	private int currentScroolY = 0;
-	private int currentOffset = ArticleDetailFragment.INITIAL_BODY_SIZE + 1;
+	private int currentOffset = 0;
 	private boolean isLoadingScrool = false;
 
 	public ArticleDetailsFragmentPresenter(Context context, ArticleDetailContract.FragmentView view, long itemId, int cursorPosition) {
@@ -39,6 +39,10 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 
 	@Override
 	public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
+		if (!view.isFragmentAdded()) {
+			return;
+		}
+
 		view.setProgressBarVisibility(false);
 		allArticleCursor = cursor;
 		cursor.moveToPosition(cursorPosition);
@@ -53,6 +57,7 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 	public void onScroolChanged(int mScrollY, int height) {
 		boolean callLoad = false;
 		if (isLoadingScrool) {
+			Log.d(TAG, "Ignorando scrool: " + mScrollY + " devido já estar carregando um");
 			return;
 		}
 
@@ -60,13 +65,16 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 			callLoad = true;
 		} else if (mScrollY > currentScroolY) {
 			callLoad = true;
+		} else {
+			Log.d(TAG, "Ignorando scrool: " + mScrollY);
 		}
 
 		if (callLoad) {
-			Log.i(TAG, "Carregando mais body para scrool.");
+			int incremmentText = context.getResources().getInteger(R.integer.article_body_text_incremment_value);
 			currentScroolY = mScrollY;
-			new ArticleBodyLoad(this).execute(String.valueOf(currentOffset));
+			new ArticleBodyLoad(this).execute(String.valueOf(currentOffset), String.valueOf(incremmentText));
 			isLoadingScrool = true;
+			Log.i(TAG, String.format("Carregando mais body para scrool. Offset: %d, increment: %d", currentOffset, incremmentText));
 		}
 	}
 
@@ -93,13 +101,14 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 	@Override
 	public void loadedAditionalBody(Spanned aditionalBody) {
 		view.setProgressBarVisibility(false);
-		if (aditionalBody == null || aditionalBody.length() == 0) { // Não tem mais a ser carregado
-			return;
-		} else {
+		isLoadingScrool = false;
+		if (aditionalBody != null && aditionalBody.length() != 0) {
+			Log.d(TAG, "Texto adicionado: " + aditionalBody.length());
 			currentOffset += aditionalBody.length() + 1;
 			view.addBodyTextPart(aditionalBody);
+		} else { // Não tem mais a ser carregado
+			Log.d(TAG, "Não tem mais texto para carregar");
 		}
-		isLoadingScrool = false;
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package com.example.xyzreader.ui.task;
 
 import android.os.AsyncTask;
 import android.text.Spanned;
-import com.example.xyzreader.ui.fragment.ArticleDetailFragment;
 import com.example.xyzreader.ui.presenter.ArticleDetailContract;
 import com.example.xyzreader.ui.view.helper.ArticleHelper;
 
@@ -23,11 +22,13 @@ public class ArticleBodyLoad extends AsyncTask<String, Integer, Spanned> {
 	@Override
 	protected Spanned doInBackground(String... strings) {
 		String offset = strings[0];
+		String incremment = strings[1];
 
 		int intOffset = Integer.parseInt(offset);
+		int intIncremment = Integer.parseInt(incremment);
 		String completeBodyText = presenter.getCompletedBodyText();
 
-		return ArticleHelper.getBodyTextPart(completeBodyText, intOffset, ArticleDetailFragment.TOTAL_TO_ADD_BODY_PART);
+		return ArticleHelper.getBodyTextPart(completeBodyText, intOffset, intIncremment);
 	}
 
 	@Override

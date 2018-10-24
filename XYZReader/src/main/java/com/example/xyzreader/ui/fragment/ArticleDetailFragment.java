@@ -26,7 +26,6 @@ import com.example.xyzreader.ui.presenter.ArticleDetailContract;
 import com.example.xyzreader.ui.presenter.ArticleDetailsFragmentPresenter;
 import com.example.xyzreader.ui.view.ArticleDetailActivity;
 import com.example.xyzreader.ui.view.ArticleListActivity;
-import com.example.xyzreader.ui.view.helper.ArticleHelper;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -190,9 +189,8 @@ public class ArticleDetailFragment extends Fragment implements
 	}
 
 	private void setInitialBodyText() {
-		final String articleBody = presenter.getCompletedBodyText();
-		Spanned bodyInHtml = ArticleHelper.getBodyTextPart(articleBody, 0, INITIAL_BODY_SIZE);
-		bodyTV.setText(bodyInHtml);
+		presenter.onScroolChanged(1, 1000);
+		bodyTV.setText("");
 		bodyTV.setMovementMethod(LinkMovementMethod.getInstance());
 		bodyTV.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 	}
