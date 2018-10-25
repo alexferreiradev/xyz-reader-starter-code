@@ -35,10 +35,9 @@ import com.example.xyzreader.ui.view.helper.ImageLoaderHelper;
  */
 public class ArticleDetailActivity extends AppCompatActivity implements ArticleDetailContract.View {
 
+	public static final String SELECTED_POS_KEY = "selected position";
 	private static final String TAG = ArticleDetailActivity.class.getSimpleName();
-	public static final int ARTICLE_BY_ID_LOADER_ID = 0;
-	public static final int ARTICLE_BY_ID_FRAG_LOADER_ID = 1;
-	public static final int ALL_ARTICLES_LOADER_ID = 2;
+	public static final int ALL_ARTICLES_LOADER_ID = ArticleListActivity.ALL_ARTICLES_LOADER_ID;
 
 	private MyPagerAdapter mPagerAdapter;
 	private ArticleDetailContract.Presenter presenter;
@@ -70,7 +69,6 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 	@Override
 	public void swapCursor(Cursor cursor) {
 		mPagerAdapter.swapCursor(cursor);
-		articleVP.setAdapter(null);
 	}
 
 	@Override
@@ -86,10 +84,18 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 		if (savedInstanceState == null) {
 			if (getIntent() != null && getIntent().getData() != null) {
 				long mStartId = ItemsContract.Items.getItemId(getIntent().getData());
-				presenter.setStartId(mStartId);
+				int selectedPos = getIntent().getIntExtra(ArticleDetailActivity.SELECTED_POS_KEY, ArticleDetailsPresenter.INVALID_POSITION);
+				if (selectedPos < 0) {
+					Log.i(TAG, "Activity iniciada por outro app");
+				} else {
+					presenter.setSelectedPos(selectedPos);
+					presenter.setStartId(mStartId);
+				}
 			} else {
 				throw new IllegalStateException("Não foi passado itemId");
 			}
+		} else {
+			presenter.restoreSavedState(savedInstanceState);
 		}
 
 		ActivityHelper.configureActionBar(this, toobar);
@@ -100,11 +106,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 			public void onPageSelected(int position) {
 				if (presenter.onPageChange(position)) {
 					super.onPageSelected(position);
+
 				} else {
 					Log.w(TAG, "Erro ao selecionar uma pagina que não está no cursor ou não há cursor válido");
 				}
 			}
 		});
+		setProgressBarVisibity(true);
 	}
 
 	private void setFullScreenLoliPop() {
@@ -121,10 +129,17 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 	}
 
 	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		articleVP.setAdapter(null);
+		articleVP.removeAllViews();
+	}
+
+	@Override
 	public void startShareView(View view, Cursor cursor) {
 		startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(this)
 				.setType("text/plain")
-				.setText(cursor.getString(cursor.getColumnIndex(ItemsContract.Items.BODY)))
+				.setText(cursor.getString(cursor.getColumnIndex(ItemsContract.Items.TITLE)))
 				.getIntent(), getString(R.string.action_share)));
 	}
 
@@ -202,6 +217,13 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 		presenter.shareArticle(v);
 	}
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		presenter.saveState(outState, articleVP.getVerticalScrollbarPosition());
+	}
+
 	private class MyPagerAdapter extends FragmentStatePagerAdapter {
 		private Cursor cursor;
 
@@ -215,7 +237,7 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 			cursor.moveToPosition(position);
 			Log.d(TAG, "Criando fragment no adapter: " + position);
 
-			return ArticleDetailFragment.newInstance(cursor.getLong(cursor.getColumnIndex(ItemsContract.Items._ID)));
+			return ArticleDetailFragment.newInstance(cursor.getLong(cursor.getColumnIndex(ItemsContract.Items._ID)), position);
 		}
 
 		@Override
@@ -225,7 +247,6 @@ public class ArticleDetailActivity extends AppCompatActivity implements ArticleD
 
 		@SuppressWarnings("WeakerAccess")
 		public void swapCursor(Cursor cursor) {
-			this.cursor.close();
 			this.cursor = cursor;
 		}
 	}

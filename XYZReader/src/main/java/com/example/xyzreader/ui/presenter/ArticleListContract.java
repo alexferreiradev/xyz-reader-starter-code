@@ -12,7 +12,7 @@ public interface ArticleListContract {
 
 	interface View extends BaseView {
 
-		void showArticleDetailsView(Article article);
+		void showArticleDetailsView(Article article, int position);
 
 		void setArticleListPositionTo(int position);
 

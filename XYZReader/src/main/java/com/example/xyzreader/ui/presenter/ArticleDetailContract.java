@@ -3,6 +3,7 @@ package com.example.xyzreader.ui.presenter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
+import android.text.Spanned;
 import com.example.xyzreader.data.loader.ArticleLoader;
 import com.example.xyzreader.ui.view.BaseView;
 
@@ -39,6 +40,10 @@ public interface ArticleDetailContract {
 		void onUpButtonFloorChanged(long itemId);
 
 		void updateStatusBar();
+
+		void addBodyTextPart(Spanned aditionalBody);
+
+		void setScroolPos(int scroolPosSaved);
 	}
 
 	interface FragmentListener {
@@ -49,16 +54,26 @@ public interface ArticleDetailContract {
 
 	interface PresenterFragment extends LoaderManager.LoaderCallbacks<Cursor>, ArticleLoader.LoaderListeners {
 
-		void onScroolChanged(int mScrollY);
+		void onScroolChanged(int mScrollY, int height);
 
 		long getArticleId();
+
+		String getCompletedBodyText();
+
+		void startLoadBody();
+
+		void loadedAditionalBody(Spanned aditionalBody);
+
+		void saveInstanceState(Bundle outState, int scrollY);
+
+		void onRestoreView(Bundle savedInstanceState);
 	}
 
 	interface Presenter extends LoaderManager.LoaderCallbacks<Cursor>, ArticleLoader.LoaderListeners {
 
 		void restoreSavedState(Bundle savedInstanceState);
 
-		void savePositionState(Bundle outState, int verticalScrollbarPosition);
+		void saveState(Bundle outState, int verticalScrollbarPosition);
 
 		void setStartId(long mStartId);
 
@@ -67,5 +82,7 @@ public interface ArticleDetailContract {
 		void shareArticle(android.view.View view);
 
 		boolean onPageChange(int position);
+
+		void setSelectedPos(int selectedPos);
 	}
 }

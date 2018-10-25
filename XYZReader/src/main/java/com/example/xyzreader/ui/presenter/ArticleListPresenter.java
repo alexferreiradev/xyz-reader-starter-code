@@ -18,6 +18,7 @@ public class ArticleListPresenter implements ArticleListContract.Presenter {
 	private ArticleListContract.View view;
 	private Context context;
 	private int savedPosition = 0;
+	private int currentPosition = 0;
 
 	public ArticleListPresenter(ArticleListContract.View view, Context context) {
 		this.view = view;
@@ -33,7 +34,8 @@ public class ArticleListPresenter implements ArticleListContract.Presenter {
 	public void selectArticle(int position, Long id) {
 		Article article = new Article();
 		article.setId(id);
-		view.showArticleDetailsView(article);
+		currentPosition = position;
+		view.showArticleDetailsView(article, position);
 	}
 
 	@Override
