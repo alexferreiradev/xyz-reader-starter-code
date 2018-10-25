@@ -42,6 +42,8 @@ public interface ArticleDetailContract {
 		void updateStatusBar();
 
 		void addBodyTextPart(Spanned aditionalBody);
+
+		void setScroolPos(int scroolPosSaved);
 	}
 
 	interface FragmentListener {
@@ -61,6 +63,10 @@ public interface ArticleDetailContract {
 		void startLoadBody();
 
 		void loadedAditionalBody(Spanned aditionalBody);
+
+		void saveInstanceState(Bundle outState, int scrollY);
+
+		void onRestoreView(Bundle savedInstanceState);
 	}
 
 	interface Presenter extends LoaderManager.LoaderCallbacks<Cursor>, ArticleLoader.LoaderListeners {

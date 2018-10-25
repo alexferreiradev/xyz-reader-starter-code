@@ -14,6 +14,7 @@ import com.example.xyzreader.ui.task.ArticleBodyLoad;
 
 public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.PresenterFragment {
 	private static final String TAG = ArticleDetailsFragmentPresenter.class.toString();
+	private static final String SCROOL_POS_SAVED_KEY = "scrool pos saved key";
 
 	private Context context;
 	private ArticleDetailContract.FragmentView view;
@@ -96,6 +97,21 @@ public class ArticleDetailsFragmentPresenter implements ArticleDetailContract.Pr
 	@Override
 	public void startLoadBody() {
 		view.setProgressBarVisibility(true);
+	}
+
+	@Override
+	public void onRestoreView(Bundle savedInstanceState) {
+		int scroolPosSaved = savedInstanceState.getInt(SCROOL_POS_SAVED_KEY, -1);
+		if (scroolPosSaved > 0) {
+			view.setScroolPos(scroolPosSaved);
+		}
+	}
+
+	@Override
+	public void saveInstanceState(Bundle outState, int scrollY) {
+		if (scrollY > 0) {
+			outState.putInt(SCROOL_POS_SAVED_KEY, scrollY);
+		}
 	}
 
 	@Override

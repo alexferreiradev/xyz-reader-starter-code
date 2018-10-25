@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.NestedScrollView;
@@ -146,6 +147,17 @@ public class ArticleDetailFragment extends Fragment implements
 	}
 
 	@Override
+	public void setScroolPos(final int scroolPosSaved) {
+		articleSV.post(new Runnable() {
+			@Override
+			public void run() {
+				Log.d(TAG, "Setando scrool para: " + scroolPosSaved);
+				articleSV.smoothScrollTo(0, scroolPosSaved);
+			}
+		});
+	}
+
+	@Override
 	public void addBodyTextPart(Spanned aditionalBody) {
 		bodyTV.append(aditionalBody);
 	}
@@ -186,6 +198,22 @@ public class ArticleDetailFragment extends Fragment implements
 		});
 
 		Log.d(TAG, "Fim bind de id: " + presenter.getArticleId());
+	}
+
+	@Override
+	public void onSaveInstanceState(@NonNull Bundle outState) {
+		if (presenter != null) {
+			presenter.saveInstanceState(outState, articleSV.getScrollY());
+		}
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+		super.onViewStateRestored(savedInstanceState);
+		if (savedInstanceState != null && presenter != null) {
+			presenter.onRestoreView(savedInstanceState);
+		}
 	}
 
 	private void setInitialBodyText() {
