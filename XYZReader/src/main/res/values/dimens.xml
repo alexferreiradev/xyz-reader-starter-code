@@ -43,6 +43,7 @@
 	<dimen name="main_content_start">@dimen/key_line2</dimen>
 	<dimen name="min_margin">8dp</dimen>
 	<dimen name="min_padding">8dp</dimen>
+	<dimen name="article_card_min_height">100dp</dimen>
 	<!--<dimen name="article_body_text_init_size">1000</dimen>-->
 	<item name="article_body_text_incremment_value" format="integer" type="integer">1000</item>
 

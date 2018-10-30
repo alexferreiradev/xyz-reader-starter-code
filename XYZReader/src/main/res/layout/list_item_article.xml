@@ -2,6 +2,7 @@
 									xmlns:tools="http://schemas.android.com/tools"
 									android:layout_width="wrap_content"
 									android:layout_height="wrap_content"
+									android:minHeight="@dimen/article_card_min_height"
 									style="@style/ArticleList.cardView"
 		>
 
@@ -14,7 +15,6 @@
 				android:id="@+id/iv_thumbnail"
 				style="@style/ArticleList.articleImage"
 				android:layout_alignParentStart="true"
-				android:layout_alignParentTop="true"
 				android:maxWidth="@dimen/max_width"
 				android:maxHeight="@dimen/max_height"
 				android:contentDescription="@string/article_image_content_discription"

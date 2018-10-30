@@ -40,6 +40,7 @@
 	<dimen name="main_content_start">72dp</dimen>
 	<dimen name="min_margin">16dp</dimen>
 	<dimen name="min_padding">16dp</dimen>
+	<dimen name="article_card_min_height">300dp</dimen>
 	<!--<dimen name="article_body_text_init_size">2000</dimen>-->
 	<item name="article_body_text_incremment_value" format="integer" type="integer">2000</item>
 
