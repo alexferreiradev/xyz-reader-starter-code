@@ -5,7 +5,7 @@
 	<dimen name="article_subtitle_size">12sp</dimen>
 	<dimen name="article_thumb_width">100dp</dimen>
 	<dimen name="article_card_height">300dp</dimen>
-	<item name="article_title_max_line" format="integer" type="integer">4</item>
+	<item name="article_title_max_line" format="integer" type="integer">3</item>
 
 	<!-- detail -->
 	<dimen name="detail_photo_height">250dp</dimen>
@@ -16,7 +16,7 @@
 	<dimen name="detail_body_text_size">22sp</dimen>
 	<item name="detail_body_line_spacing_multiplier" format="float" type="fraction">1.25</item>
 	<dimen name="detail_body_container_padding">8dp</dimen>
-	<dimen name="detail_body_container_margin">16dp</dimen>
+	<dimen name="detail_body_container_margin">50dp</dimen>
 	<dimen name="article_detail_card_max_width">300dp</dimen>
 
 	<dimen name="fab_elevation">16dp</dimen>
@@ -26,7 +26,6 @@
 
 	<!--Action Bar -->
 	<dimen name="ab_margin">0dp</dimen>
-	<dimen name="ab_elevation">8dp</dimen>
 	<dimen name="ab_height">56dp</dimen>
 	<dimen name="ab_padding">4dp</dimen>
 
@@ -41,7 +40,7 @@
 	<dimen name="main_content_start">72dp</dimen>
 	<dimen name="min_margin">16dp</dimen>
 	<dimen name="min_padding">16dp</dimen>
-	<dimen name="aticle_card_elevation">4dp</dimen>
+	<dimen name="article_card_min_height">300dp</dimen>
 	<!--<dimen name="article_body_text_init_size">2000</dimen>-->
 	<item name="article_body_text_incremment_value" format="integer" type="integer">2000</item>
 
